@@ -4,12 +4,76 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+// ここからモデル定義
+// 著者
+model Author {
+  id        String  @id @default(uuid(7)) @db.VarChar(36) // 著者ID(主キー)
+  name      String  @db.VarChar(128) // 著者名
+  isDeleted Boolean @default(false) // 削除フラグ　初期値：false
+
+  // 逆リレーション
+  books Book[]
+}
+
+// 出版社
+model Publisher {
+  id        String  @id @default(uuid(7)) @db.VarChar(36) // 出版社ID(主キー)
+  name      String  @db.VarChar(128) // 出版社名
+  isDeleted Boolean @default(false) // 削除フラグ　初期値：false
+
+  // 逆リレーション
+  books Book[]
+}
+
+// 利用者（ユーザー）
+model User {
+  id        String   @id @default(uuid(7)) @db.VarChar(36) // ユーザーID(主キー)
+  email     String   @unique @db.VarChar(254) // メールアドレス(ユニーク)
+  name      String   @db.VarChar(512) // ユーザー名
+  password  String   @db.VarChar(256) // パスワード(ハッシュ値)
+  isAdmin   Boolean  @default(false) // 管理者フラグ　初期値：false
+  createdAt DateTime @default(now()) // 登録日時　初期値：現在の日時
+  updatedAt DateTime @updatedAt // 更新日時　現在の日時に自動更新
+  isDeleted Boolean  @default(false) // 削除フラグ　初期値：false
+
+  // 逆リレーション
+  rentalLogs RentalLog[]
+}
+
+// 書籍
+model Book {
+  isbn             BigInt  @id @db.UnsignedBigInt // 書籍ID(主キー)
+  title            String  @db.VarChar(512) // 書籍タイトル
+  authorId         String  @map("author_id") @db.VarChar(36) // 著者ID(外部キー)
+  publisherId      String  @map("publisher_id") @db.VarChar(36) // 出版社ID(外部キー)
+  publicationYear  Int     @map("publication_year") @db.UnsignedInt // 出版された年
+  publicationMonth Int     @map("publication_month") @db.TinyInt // 出版された月
+  isDeleted        Boolean @default(false) // 削除フラグ　初期値：false
+
+  // リレーション定義
+  author    Author    @relation(fields: [authorId], references: [id]) // 著者リレーション
+  publisher Publisher @relation(fields: [publisherId], references: [id]) // 出版社リレーション
+
+  // 逆リレーション
+  rentalLogs RentalLog[]
+}
+
+// レンタルログ
+model RentalLog {
+  id           String    @id @default(uuid(7)) @db.VarChar(36) // レンタルログID(主キー)
+  bookIsbn     BigInt    @db.UnsignedBigInt // 書籍ID(外部キー)
+  userId       String    @db.VarChar(36) // ユーザーID(外部キー)
+  checkoutDate DateTime  @default(now()) // 貸出日時　初期値：現在の日時
+  dueDate      DateTime // 返却期限
+  returnDate   DateTime? // 返却日時　初期値：null
+
+  // リレーション定義
+  book Book @relation(fields: [bookIsbn], references: [isbn])
+  user User @relation(fields: [userId], references: [id])
 }
