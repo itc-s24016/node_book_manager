@@ -3,10 +3,11 @@ import express, {NextFunction, Request, Response} from 'express'
 import path from 'node:path'
 import cookieParser from 'cookie-parser'
 import logger from 'morgan'
-import passport from './libs/auth.js'
 
-import indexRouter from './routes/index.js'
-import usersRouter from './routes/users.js'
+import passport from './libs/auth.js'
+import session from 'express-session'
+
+import userRouter from './routes/user.js'
 
 const app = express()
 
@@ -19,9 +20,19 @@ app.use(express.json())
 app.use(express.urlencoded({extended: false}))
 app.use(cookieParser())
 app.use(express.static(path.join(import.meta.dirname, 'public')))
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret key',
+  resave: false,
+  saveUninitialized: false,
+  name: 'md_sid',
+  cookie: {
+    maxAge: 1000 * 60 * 60,
+    httpOnly: true,
+  }
+}))
+app.use(passport.authenticate('session'))
 
-app.use('/', indexRouter)
-app.use('/users', usersRouter)
+app.use('/user', userRouter)
 
 // catch 404 and forward to error handler
 app.use(async (req: Request, res: Response, next: NextFunction) => {
