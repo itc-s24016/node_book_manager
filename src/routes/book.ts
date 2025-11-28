@@ -71,4 +71,31 @@ router.get('/list/:page', async (req, res) => {
   res.json(safeJson(response));
 });
 
+// 書籍詳細取得
+router.get('/detail/:isbn', async (req, res) => {
+  const isbn = req.params.isbn;
+
+  const book = await prisma.book.findUnique({
+    where: {isbn: BigInt(isbn)},
+    select: {
+      isbn: true,
+      title: true,
+      author: {
+        select: { name: true }
+      },
+      publisher: {
+        select: { name: true }
+      },
+      publicationMonth: true,
+    }
+  });
+  if (!book) {
+    return res.status(404).json({
+      message: "書籍が見つかりません"
+    });
+  }
+  res.json(safeJson(book));
+});
+
+
 export default router
