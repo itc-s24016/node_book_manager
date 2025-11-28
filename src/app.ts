@@ -24,11 +24,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'secret key',
   resave: false,
   saveUninitialized: false,
-  name: 'md_sid',
+  name: 'mb_sid',
   cookie: {
     maxAge: 1000 * 60 * 60,
     httpOnly: true,
-  }
+  },
 }))
 app.use(passport.authenticate('session'))
 
