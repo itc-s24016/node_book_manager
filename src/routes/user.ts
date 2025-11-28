@@ -65,7 +65,7 @@ router.post('/register',
         }
       })
       // 4. セッションログイン
-      const user: Express.User = { id: newUser.id, name: newUser.name }
+      const user: Express.User & { isAdmin?: boolean } = { id: newUser.id, name: newUser.name, isAdmin: newUser.isAdmin }
       req.login(user, err => {
         if (err) throw err
         return res.sendStatus(200)

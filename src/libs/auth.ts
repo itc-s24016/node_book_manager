@@ -18,22 +18,31 @@ passport.use(new LocalStrategy({
       return done(null, false, {message: 'またはパスワードが違います'})
     }
 
-    return done(null, {id: user.id, name: user.name})
+    return done(null, {id: user.id, name: user.name, isAdmin: user.isAdmin})
   } catch (e) {
     return done(e)
   }
 }))
 
-passport.serializeUser<Express.User>((user, done) => {
-  process.nextTick(() => {
-    done(null, user)
-  })
+// passport.serializeUser<Express.User>((user, done) => {
+//   process.nextTick(() => {
+//     done(null, user)
+//   })
+// })
+//
+// passport.deserializeUser<Express.User>((user, done) => {
+//   process.nextTick(() => {
+//     return done(null, user)
+//   })
+// })
+
+passport.serializeUser((user: any, done) => {
+  done(null, { id: user.id, isAdmin: user.isAdmin })
 })
 
-passport.deserializeUser<Express.User>((user, done) => {
-  process.nextTick(() => {
-    return done(null, user)
-  })
+passport.deserializeUser((user: any, done) => {
+  done(null, user)
 })
+
 
 export default passport
