@@ -8,6 +8,7 @@ import passport from './libs/auth.js'
 import session from 'express-session'
 
 import userRouter from './routes/user.js'
+import bookRouter from './routes/book.js'
 
 const app = express()
 
@@ -33,6 +34,7 @@ app.use(session({
 app.use(passport.authenticate('session'))
 
 app.use('/user', userRouter)
+app.use('/book', bookRouter)
 
 // catch 404 and forward to error handler
 app.use(async (req: Request, res: Response, next: NextFunction) => {
@@ -40,15 +42,22 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
 })
 
 // error handler
-app.use(async (err: unknown, req: Request, res: Response, next: NextFunction) => {
-    // set locals, only providing error in development
-    res.locals.message = hasProperty(err, 'message') && err.message || 'Unknown error'
-    res.locals.error = req.app.get('env') === 'development' ? err : {}
+// app.use(async (err: unknown, req: Request, res: Response, next: NextFunction) => {
+//     // set locals, only providing error in development
+//     res.locals.message = hasProperty(err, 'message') && err.message || 'Unknown error'
+//     res.locals.error = req.app.get('env') === 'development' ? err : {}
+//
+//     // render the error page
+//     res.status(hasProperty(err, 'status') && Number(err.status) || 500)
+//     res.render('error')
+// })
+app.use((err:any, req:any, res:any, next:any) => {
+  console.error(err);
 
-    // render the error page
-    res.status(hasProperty(err, 'status') && Number(err.status) || 500)
-    res.render('error')
-})
+  res.status(err.status || 500).json({
+    message: err.message || 'Internal Server Error',
+  });
+});
 
 // unknown 型のデータが、指定のプロパティを持っているかチェックするための関数
 function hasProperty<K extends string>(x: unknown, ...name: K[]): x is { [M in K]: unknown } {
