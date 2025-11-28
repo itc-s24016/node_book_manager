@@ -62,7 +62,6 @@ router.put('/author',
     try {
       const updatedAuthor = await prisma.author.update({
         where: { id: req.body.id },
-
         data: { name: req.body.name }
       });
 
@@ -78,5 +77,25 @@ router.put('/author',
     }
   }
 );
+
+// 著者削除
+router.delete('/author/:id',
+  check('id').notEmpty().withMessage('著者IDは必須です'),
+  async (req, res) => {
+  const authorId = req.params?.id;
+  try {
+    await prisma.author.delete({
+      where: { id: authorId },
+    });
+
+    return res.status(200).json({ message: '著者を削除しました' });
+  } catch (e: any) {
+    // 該当IDがない場合など
+    if (e.code === 'P2025') {
+      return res.status(404).json({ message: '該当する著者が存在しません' });
+    }
+    return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+  }
+});
 
 export default router
