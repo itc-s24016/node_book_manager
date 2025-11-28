@@ -48,4 +48,35 @@ router.post('/author',
   }
 )
 
+// 著者名更新
+router.put('/author',
+  check('id').notEmpty().withMessage('著者IDは必須です'),
+  check('name').notEmpty().withMessage('著者名は必須です'),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const firstError = result.array()[0];
+      return res.status(400).json({ message: firstError.msg });
+    }
+
+    try {
+      const updatedAuthor = await prisma.author.update({
+        where: { id: req.body.id },
+
+        data: { name: req.body.name }
+      });
+
+      return res.status(200).json({
+        author: { id: updatedAuthor.id, name: updatedAuthor.name }
+      });
+    } catch (e: any) {
+      // 該当IDがない場合など
+      if (e.code === 'P2025') {
+        return res.status(404).json({ message: '該当する著者が存在しません' });
+      }
+      return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+  }
+);
+
 export default router
