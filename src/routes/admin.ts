@@ -129,5 +129,35 @@ router.post('/publisher',
   }
 )
 
+// 出版社更新
+router.put('/publisher',
+  check('id').notEmpty().withMessage('出版社IDは必須です'),
+  check('name').notEmpty().withMessage('出版社名は必須です'),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const firstError = result.array()[0];
+      return res.status(400).json({ message: firstError.msg });
+    }
+
+    try {
+      const updatedPublisher = await prisma.publisher.update({
+        where: { id: req.body.id },
+        data: { name: req.body.name }
+      });
+
+      return res.status(200).json({
+        author: { id: updatedPublisher.id, name: updatedPublisher.name }
+      });
+    } catch (e: any) {
+      // 該当IDがない場合など
+      if (e.code === 'P2025') {
+        return res.status(404).json({ message: '該当する出版社が存在しません' });
+      }
+      return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+  }
+);
+
 
 export default router
