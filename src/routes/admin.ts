@@ -79,10 +79,10 @@ router.put('/author',
 );
 
 // 著者削除
-router.delete('/author/:id',
+router.delete('/author',
   check('id').notEmpty().withMessage('著者IDは必須です'),
   async (req, res) => {
-  const authorId = req.params?.id;
+  const authorId = req.body.id;
   try {
     await prisma.author.delete({
       where: { id: authorId },
@@ -159,5 +159,24 @@ router.put('/publisher',
   }
 );
 
+// 出版社削除
+router.delete('/publisher',
+  check('id').notEmpty().withMessage('出版社IDは必須です'),
+  async (req, res) => {
+    const publisherId = req.body.id;
+    try {
+      await prisma.publisher.delete({
+        where: { id: publisherId },
+      });
+
+      return res.status(200).json({ message: '出版社を削除しました' });
+    } catch (e: any) {
+      // 該当IDがない場合など
+      if (e.code === 'P2025') {
+        return res.status(404).json({ message: '該当する出版社が存在しません' });
+      }
+      return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+  });
 
 export default router
