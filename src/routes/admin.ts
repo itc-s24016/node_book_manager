@@ -98,4 +98,36 @@ router.delete('/author/:id',
   }
 });
 
+// 出版社登録
+router.post('/publisher',
+  check('name').notEmpty().withMessage('出版社名は必須です'),
+  async (req, res) => {
+
+    const result = validationResult(req)
+    if (!result.isEmpty()) {
+      const firstError = result.array()[0]
+      return res.status(400).json({ message: firstError.msg })
+    }
+
+    try {
+      const newPublisher = await prisma.publisher.create({
+        data: {
+          name: req.body.name
+        }
+      })
+
+      return res.status(200).json({
+        publisher: {
+          id: newPublisher.id,
+          name: newPublisher.name
+        }
+      })
+
+    } catch (e: any) {
+      return res.status(500).json({ message: 'サーバーエラーが発生しました' })
+    }
+  }
+)
+
+
 export default router
