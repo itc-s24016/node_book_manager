@@ -255,4 +255,44 @@ router.post('/book',
   }
 )
 
+// 書籍更新
+router.put('/book',
+  check('isbn').notEmpty().withMessage('書籍IDは必須です'),
+  check('title').notEmpty().withMessage('書籍名は必須です'),
+  check('authorId').notEmpty().withMessage('著者IDは必須です'),
+  check('publisherId').notEmpty().withMessage('出版社IDは必須です'),
+  check('publicationYear').notEmpty().withMessage('出版年は必須です'),
+  check('publicationMonth').notEmpty().withMessage('出版月は必須です'),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      const firstError = result.array()[0];
+      return res.status(400).json({ message: firstError.msg });
+    }
+
+    try {
+      await prisma.book.update({
+        where: { isbn: req.body.isbn },
+        data: {
+          title: req.body.title,
+          authorId: req.body.authorId,
+          publisherId: req.body.publisherId,
+          publicationYear: req.body.publicationYear,
+          publicationMonth: req.body.publicationMonth
+        }
+      });
+
+      return res.status(200).json({
+        message: '更新しました'
+      });
+    } catch (e: any) {
+      // 該当IDがない場合など
+      if (e.code === 'P2025') {
+        return res.status(404).json({ message: '該当する書籍が存在しません' });
+      }
+      return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+    }
+  }
+);
+
 export default router
