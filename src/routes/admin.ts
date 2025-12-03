@@ -295,4 +295,31 @@ router.put('/book',
   }
 );
 
+// 書籍削除
+router.delete('/book',
+    check('isbn').notEmpty().withMessage('書籍IDは必須です'),
+    async (req, res) => {
+      const bookId = req.body.isbn;
+      try {
+        // 該当する書籍IDが存在しない、isDelete がすでに true になっている場合はエラー
+        if (!await prisma.book.findFirst({ where: { isbn: bookId, isDeleted: false } })) {
+          return res.status(404).json({ message: '該当する書籍が存在しません' });
+        }
+
+        await prisma.book.updateMany(
+          {
+            where: { isbn: bookId },
+            data: {isDeleted: true}
+          }
+        );
+        return res.status(200).json({ message: '書籍を削除しました' });
+      } catch (e: any) {
+        // 該当IDがない場合など
+        if (e.code === 'P2025') {
+          return res.status(404).json({ message: '該当する書籍が存在しません' });
+        }
+        return res.status(500).json({ message: 'サーバーエラーが発生しました' });
+      }
+    });
+
 export default router
