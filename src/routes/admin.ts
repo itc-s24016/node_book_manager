@@ -84,9 +84,12 @@ router.delete('/author',
   async (req, res) => {
   const authorId = req.body.id;
   try {
-    await prisma.author.delete({
-      where: { id: authorId },
-    });
+    await prisma.author.updateMany(
+      {
+        where: { id: authorId },
+        data: {isDeleted: true}
+      }
+    );
 
     return res.status(200).json({ message: '著者を削除しました' });
   } catch (e: any) {
@@ -165,9 +168,12 @@ router.delete('/publisher',
   async (req, res) => {
     const publisherId = req.body.id;
     try {
-      await prisma.publisher.delete({
-        where: { id: publisherId },
-      });
+      await prisma.publisher.updateMany(
+        {
+          where: { id: publisherId },
+          data: {isDeleted: true}
+        }
+      );
 
       return res.status(200).json({ message: '出版社を削除しました' });
     } catch (e: any) {
